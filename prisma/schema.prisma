@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+enum PrescriptionStatus {
+  PENDING
+  IN_REVIEW
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  fullname     String
+  mobile       String   @unique
+  email        String   @unique
+  passwordHash String
+  role         UserRole @default(CUSTOMER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  sortOrder   Int       @default(0)
+  active      Boolean   @default(true)
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Product {
+  id                  String    @id @default(cuid())
+  name                String
+  genericName         String?
+  manufacturer        String?
+  categoryId          String?
+  category            Category? @relation(fields: [categoryId], references: [id])
+  strength            String?
+  dosageForm          String?
+  packSize            String?
+  description         String?
+  prescriptionRequired Boolean  @default(false)
+  available           Boolean   @default(true)
+  price               Float?
+  image               String?
+  published           Boolean   @default(true)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+model PrescriptionRequest {
+  id               String             @id @default(cuid())
+  refNo            String             @unique
+  customerName     String
+  mobile           String
+  email            String?
+  filePath         String
+  originalFilename String
+  message          String?
+  consent          Boolean            @default(false)
+  status           PrescriptionStatus @default(PENDING)
+  notes            String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+}
+
+model FAQ {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  sortOrder Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SiteSettings {
+  id                 String   @id @default(cuid())
+  businessName       String   @default("Sanwaliya Medical Store")
+  proprietor         String   @default("Dr. Hari Om Jat")
+  licenceNumber      String   @default("153414-153415")
+  whatsappNumber     String   @default("+91 6375108795")
+  whatsappLink       String   @default("https://wa.me/916375108795")
+  email              String   @default("sanwaliyamedicalstore@gmail.com")
+  instagram          String   @default("@sanwaliyamedicalstore")
+  locationText       String   @default("Mangalwar Chauraha")
+  mapsLink           String   @default("https://maps.app.goo.gl/LaQBNXq8McPWfcft7")
+  openingHours       String   @default("8:00 AM – 9:30 PM")
+  homeHeadline       String   @default("Your Health, Our Priority.")
+  homeSubtitle       String   @default("Your trusted neighbourhood pharmacy for everyday healthcare essentials, personal care products, and friendly service.")
+  heroImage          String   @default("/images/hero-pharmacy.svg")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model AdminAuditLog {
+  id        String   @id @default(cuid())
+  actor     String
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+}
